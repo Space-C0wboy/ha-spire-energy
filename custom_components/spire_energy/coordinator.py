@@ -23,13 +23,69 @@ class SpireEnergyCoordinator(DataUpdateCoordinator):
         try:
             if not await self.api.ensure_authenticated():
                 raise UpdateFailed("Unable to authenticate with Spire Energy")
+
+            # Fetch daily usage (meter reads)
             daily = await self.api.get_daily_usage(self.utility_account_id, self.sa_id)
             latest_usage = self._extract_latest_usage(daily)
-            return {"daily_raw": daily, "latest_usage": latest_usage, "is_daily_read_customer": daily.get("isDailyReadCustomer", False)}
+
+            # Fetch billing data (balance + due dates)
+            billing = await self._fetch_billing_data()
+
+            return {
+                "daily_raw": daily,
+                "latest_usage": latest_usage,
+                "is_daily_read_customer": daily.get("isDailyReadCustomer", False),
+                "billing": billing,
+            }
         except SpireEnergyAuthError as exc:
             raise UpdateFailed(f"Auth error: {exc}") from exc
         except SpireEnergyConnectionError as exc:
             raise UpdateFailed(f"Connection error: {exc}") from exc
+
+    async def _fetch_billing_data(self) -> dict[str, Any]:
+        """Fetch balance and last bill info. Returns empty dict on failure."""
+        billing: dict[str, Any] = {}
+        try:
+            balance_data = await self.api.get_balance(self.utility_account_id)
+            acct_balance = balance_data.get("accountBalance", {})
+            billing["current_balance"] = acct_balance.get("currentBalance")
+            billing["next_bill_date"] = acct_balance.get("nextBillDate")
+            billing["past_due_balance"] = acct_balance.get("pastDueBalance")
+            billing["is_past_due"] = acct_balance.get("isPastDue", False)
+        except Exception:
+            _LOGGER.warning("Spire: failed to fetch balance data")
+
+        try:
+            monthly = await self.api.get_monthly_usage(self.utility_account_id)
+            last_bill = self._extract_last_bill(monthly)
+            if last_bill:
+                billing["last_bill_amount"] = last_bill.get("dollars")
+                billing["last_bill_date"] = last_bill.get("measuredOn")
+                billing["last_bill_period_start"] = last_bill.get("startDate")
+                billing["last_bill_period_end"] = last_bill.get("endDate")
+                billing["last_bill_usage"] = last_bill.get("units")
+                billing["last_bill_days"] = last_bill.get("daysInPeriod")
+        except Exception:
+            _LOGGER.warning("Spire: failed to fetch monthly usage data")
+
+        return billing
+
+    @staticmethod
+    def _extract_last_bill(data: dict) -> dict | None:
+        """Extract the most recent billing period from monthly usage."""
+        try:
+            premises = data.get("premises", [])
+            if not premises:
+                return None
+            yearly_usages = premises[0].get("yearlyUsages", [])
+            # yearlyUsages are ordered newest first; grab first detail
+            for yearly in yearly_usages:
+                details = yearly.get("usageDetails", [])
+                if details:
+                    return details[0]
+        except (KeyError, IndexError, TypeError):
+            pass
+        return None
 
     @staticmethod
     def _extract_latest_usage(data):

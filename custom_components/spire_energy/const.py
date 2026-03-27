@@ -21,6 +21,10 @@ EP_MFA_VALIDATE = f"{API_BASE}/mfa/v1.0/validate"
 SENSOR_GAS_METER = "gas_meter_reading"
 SENSOR_GAS_TODAY = "gas_usage_today"
 SENSOR_GAS_BALANCE = "gas_balance"
+SENSOR_CURRENT_BALANCE = "current_balance"
+SENSOR_NEXT_BILL_DATE = "next_bill_date"
+SENSOR_LAST_BILL_AMOUNT = "last_bill_amount"
+SENSOR_LAST_BILL_DATE = "last_bill_date"
 
 # Update interval
 UPDATE_INTERVAL_HOURS = 6
