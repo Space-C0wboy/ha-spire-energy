@@ -4,7 +4,7 @@
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 
-A [HACS](https://hacs.xyz/) custom integration for [Spire Energy](https://www.spireenergy.com/) that pulls daily natural gas usage and meter readings into Home Assistant's Energy Dashboard.
+A [HACS](https://hacs.xyz/) custom integration for [Spire Energy](https://www.spireenergy.com/) that pulls natural gas usage, meter readings, and billing information into Home Assistant.
 
 ---
 
@@ -12,6 +12,7 @@ A [HACS](https://hacs.xyz/) custom integration for [Spire Energy](https://www.sp
 
 - **Cumulative meter read** — use `Gas Meter Reading` in the HA Energy Dashboard for long-term tracking
 - **Daily granularity** — if you have a smart meter (AMI), today's CCF usage is available
+- **Billing sensors** — current balance, next bill date, last bill amount and date
 - Automatically re-authenticates when sessions expire
 - **No extra dependencies** — uses only `aiohttp` (already bundled with Home Assistant)
 
@@ -23,12 +24,12 @@ A [HACS](https://hacs.xyz/) custom integration for [Spire Energy](https://www.sp
 |--------|-----------|------|--------------|-------------|-------------|
 | Spire Gas Meter Reading | `sensor.spire_gas_meter_reading` | CCF | `gas` | `total_increasing` | Cumulative meter read. Primary sensor for HA Energy dashboard. |
 | Spire Gas Usage Today | `sensor.spire_gas_usage_today` | CCF | `gas` | `measurement` | Today's consumption (AMI smart meters only — may show `unknown` on standard meters) |
+| Spire Current Balance | `sensor.spire_current_balance` | USD | `monetary` | `total` | Current amount due on your account |
+| Spire Next Bill Date | `sensor.spire_next_bill_date` | — | — | — | Date your next bill is due |
+| Spire Last Bill Amount | `sensor.spire_last_bill_amount` | USD | `monetary` | `measurement` | Amount of your most recent bill |
+| Spire Last Bill Date | `sensor.spire_last_bill_date` | — | — | — | Date your most recent bill was issued |
 
 > **Note:** Entity IDs may vary if you have renamed entities. The names above are the defaults.
-
-### Not Included: Billing Sensors
-
-Balance due, payment due date, and bill history were explored but the Spire billing API lives on a separate subdomain (`www.myaccount.spire.com`) with unreliable DNS resolution. Those sensors were omitted to avoid flapping states. If that endpoint stabilizes in a future Spire update, billing sensors would be straightforward to add.
 
 ---
 
@@ -71,6 +72,7 @@ Balance due, payment due date, and bill history were explored but the Spire bill
 
 - **Daily reads**: Available if your account has an AMI smart meter (`is_daily_read_customer: true`)
 - **Update frequency**: Every 6 hours (data typically updates once daily)
+- **Billing data**: Updates every 6 hours alongside meter data
 
 ---
 
@@ -88,6 +90,9 @@ Alabama, Missouri, Mississippi (all Spire service territories)
 
 **`sensor.spire_gas_usage_today` stays unknown**
 - This sensor only populates if your meter is an AMI smart meter. Standard meters don't report daily consumption.
+
+**Billing sensors show `unknown`**
+- Billing data is fetched from the same session as meter data. If billing sensors are unavailable, check the HA logs for errors under `spire_energy`. A re-authentication may be needed.
 
 **Check logs**
 - Settings → System → Logs, filter by `spire_energy`
