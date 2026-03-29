@@ -89,13 +89,22 @@ class SpireEnergyCoordinator(DataUpdateCoordinator):
 
     @staticmethod
     def _extract_latest_usage(data):
+        """Extract the most recent daily usage reading by date."""
         try:
             premises = data.get("premises", [])
-            if not premises: return None
+            if not premises:
+                return None
+            # Collect all details across all years
+            all_details = []
             for yearly in premises[0].get("yearlyUsages", []):
                 for detail in yearly.get("usageDetails", []):
-                    if detail.get("meterRead"):
-                        return detail
+                    if detail.get("meterRead") and detail.get("measuredOn"):
+                        all_details.append(detail)
+            if not all_details:
+                return None
+            # Sort by date descending and return the most recent
+            all_details.sort(key=lambda d: d.get("measuredOn", ""), reverse=True)
+            return all_details[0]
         except (KeyError, IndexError, TypeError):
             pass
         return None

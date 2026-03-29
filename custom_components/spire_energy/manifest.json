@@ -1,7 +1,7 @@
 {
   "domain": "spire_energy",
   "name": "Spire Energy",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "documentation": "https://github.com/Space-C0wboy/ha-spire-energy",
   "requirements": [],
   "dependencies": [],

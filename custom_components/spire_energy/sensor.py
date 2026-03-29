@@ -1,7 +1,7 @@
 """Spire Energy sensor platform."""
 from __future__ import annotations
 import logging
-from datetime import datetime
+from datetime import datetime, date
 from typing import Any
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
@@ -72,6 +72,14 @@ class SpireGasMeterSensor(SpireBaseSensor):
         u = self._data.get("latest_usage") or {}
         return u.get("meterRead")
 
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        u = self._data.get("latest_usage") or {}
+        attrs = {}
+        if u.get("measuredOn"):
+            attrs["last_read_date"] = u["measuredOn"]
+        return attrs
+
 
 class SpireGasUsageTodaySensor(SpireBaseSensor):
     _attr_name = "Spire Gas Usage Today"
@@ -87,7 +95,38 @@ class SpireGasUsageTodaySensor(SpireBaseSensor):
     @property
     def native_value(self):
         u = self._data.get("latest_usage") or {}
-        return u.get("consumption")
+        # The API field is "units", not "consumption"
+        usage = u.get("units")
+        if usage is None:
+            return None
+        # Only report as "today" if the reading is actually from today
+        measured = u.get("measuredOn")
+        if measured:
+            try:
+                read_date = datetime.strptime(measured, "%Y-%m-%d").date()
+                if read_date == date.today():
+                    return round(float(usage), 2)
+                # Not today — return None so sensor shows "Unknown"
+                # rather than misleading stale data
+                return None
+            except (ValueError, TypeError):
+                pass
+        return None
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Always expose the latest available reading for debugging."""
+        u = self._data.get("latest_usage") or {}
+        attrs: dict[str, Any] = {}
+        if u.get("measuredOn"):
+            attrs["last_read_date"] = u["measuredOn"]
+        if u.get("units") is not None:
+            try:
+                attrs["last_read_usage_ccf"] = round(float(u["units"]), 2)
+            except (ValueError, TypeError):
+                attrs["last_read_usage_ccf"] = u["units"]
+        attrs["is_daily_read_customer"] = self._data.get("is_daily_read_customer", False)
+        return attrs
 
 
 class SpireCurrentBalanceSensor(SpireBaseSensor):
@@ -132,11 +171,24 @@ class SpireNextBillDateSensor(SpireBaseSensor):
         raw = self._billing.get("next_bill_date")
         if raw:
             try:
-                # Format: "Mar 30, 2026"
-                return datetime.strptime(raw, "%b %d, %Y").date()
+                parsed = datetime.strptime(raw, "%b %d, %Y").date()
+                # If the bill date is in the past, return None rather than
+                # showing a stale date — Spire hasn't updated yet
+                if parsed < date.today():
+                    return None
+                return parsed
             except (ValueError, TypeError):
                 _LOGGER.debug("Spire: could not parse next_bill_date: %s", raw)
         return None
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Always expose the raw API value for debugging."""
+        attrs: dict[str, Any] = {}
+        raw = self._billing.get("next_bill_date")
+        if raw:
+            attrs["api_next_bill_date"] = raw
+        return attrs
 
 
 class SpireLastBillAmountSensor(SpireBaseSensor):
