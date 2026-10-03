@@ -24,7 +24,7 @@ A [HACS](https://hacs.xyz/) custom integration for [Spire Energy](https://www.sp
 | Sensor | Entity ID | Unit | Device Class | State Class | Description |
 |--------|-----------|------|--------------|-------------|-------------|
 | Spire Gas Meter Reading | `sensor.spire_gas_meter_reading` | CCF | `gas` | `total_increasing` | Latest cumulative meter read. |
-| Spire Gas Usage Today | `sensor.spire_gas_usage_today` | CCF | `gas` | — | Today's consumption (AMI smart meters only — may show `unknown` on standard meters) |
+| Spire Gas Usage (Latest Day) | `sensor.spire_gas_usage_latest_day` | CCF | `gas` | — | Usage on the most recent day Spire has reported (a few days behind); the day is in the `date` attribute. Daily-read meters only. |
 | Spire Current Balance | `sensor.spire_current_balance` | USD | `monetary` | `total` | Current amount due on your account |
 | Spire Next Bill Date | `sensor.spire_next_bill_date` | — | — | — | Date your next bill is due |
 | Spire Last Bill Amount | `sensor.spire_last_bill_amount` | USD | `monetary` | — | Amount of your most recent bill |
@@ -97,8 +97,8 @@ Alabama, Missouri, Mississippi (all Spire service territories)
 - Verify your credentials work at [myaccount.spireenergy.com](https://myaccount.spireenergy.com)
 - Use your email address (not a username)
 
-**`sensor.spire_gas_usage_today` stays unknown**
-- This sensor only populates if your meter is an AMI smart meter. Standard meters don't report daily consumption.
+**`sensor.spire_gas_usage_latest_day` stays unknown**
+- This sensor needs a daily-read (AMI) meter. Standard meters don't report daily consumption.
 
 **Billing sensors show `unknown`**
 - Billing data is fetched from the same session as meter data. If billing sensors are unavailable, check the HA logs for errors under `spire_energy`. A re-authentication may be needed.

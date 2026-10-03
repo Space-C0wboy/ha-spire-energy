@@ -19,7 +19,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: SpireConfigEntry, async_
     coordinator = entry.runtime_data
     async_add_entities([
         SpireGasMeterSensor(coordinator, entry),
-        SpireGasUsageTodaySensor(coordinator, entry),
+        SpireGasUsageLatestDaySensor(coordinator, entry),
         SpireCurrentBalanceSensor(coordinator, entry),
         SpireNextBillDateSensor(coordinator, entry),
         SpireLastBillAmountSensor(coordinator, entry),
@@ -75,51 +75,30 @@ class SpireGasMeterSensor(SpireBaseSensor):
         return attrs
 
 
-class SpireGasUsageTodaySensor(SpireBaseSensor):
-    _attr_name = "Spire Gas Usage Today"
+class SpireGasUsageLatestDaySensor(SpireBaseSensor):
+    """Usage on the most recent day Spire has reported; reads arrive a few days late."""
+
+    _attr_name = "Spire Gas Usage (Latest Day)"
     _attr_device_class = SensorDeviceClass.GAS
     _attr_native_unit_of_measurement = UNIT_CCF
     _attr_icon = "mdi:fire"
 
     def __init__(self, coord, entry):
         super().__init__(coord, entry)
-        self._attr_unique_id = f"{entry.entry_id}_gas_usage_today"
+        self._attr_unique_id = f"{entry.entry_id}_gas_usage_latest_day"
 
     @property
     def native_value(self):
         u = self._data.get("latest_usage") or {}
-        # The API field is "units", not "consumption"
-        usage = u.get("units")
-        if usage is None:
+        try:
+            return round(float(u["units"]), 2)
+        except (KeyError, TypeError, ValueError):
             return None
-        # Only report as "today" if the reading is actually from today
-        measured = u.get("measuredOn")
-        if measured:
-            try:
-                read_date = datetime.strptime(measured, "%Y-%m-%d").date()
-                if read_date == date.today():
-                    return round(float(usage), 2)
-                # Not today — return None so sensor shows "Unknown"
-                # rather than misleading stale data
-                return None
-            except (ValueError, TypeError):
-                pass
-        return None
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
-        """Always expose the latest available reading for debugging."""
         u = self._data.get("latest_usage") or {}
-        attrs: dict[str, Any] = {}
-        if u.get("measuredOn"):
-            attrs["last_read_date"] = u["measuredOn"]
-        if u.get("units") is not None:
-            try:
-                attrs["last_read_usage_ccf"] = round(float(u["units"]), 2)
-            except (ValueError, TypeError):
-                attrs["last_read_usage_ccf"] = u["units"]
-        attrs["is_daily_read_customer"] = self._data.get("is_daily_read_customer", False)
-        return attrs
+        return {"date": u["measuredOn"]} if u.get("measuredOn") else {}
 
 
 class SpireCurrentBalanceSensor(SpireBaseSensor):
