@@ -41,10 +41,10 @@ class SpireEnergyConnectionError(Exception):
 class SpireEnergyAPI:
     """Client for the Spire Energy customer portal API."""
 
-    def __init__(self) -> None:
+    def __init__(self, email: str = "", password: str = "") -> None:
         self._cookies: dict[str, str] = {}
-        self._email: str = ""
-        self._password: str = ""
+        self._email = email
+        self._password = password
 
     # ------------------------------------------------------------------
     # Auth

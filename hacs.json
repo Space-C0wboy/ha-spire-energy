@@ -2,5 +2,5 @@
   "name": "Spire Energy",
   "render_readme": true,
   "filename": "spire_energy",
-  "homeassistant": "2023.4.0"
+  "homeassistant": "2025.11.0"
 }

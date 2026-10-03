@@ -7,15 +7,16 @@ from homeassistant.components.sensor import SensorDeviceClass, SensorEntity, Sen
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from .coordinator import SpireEnergyCoordinator
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from .coordinator import SpireConfigEntry, SpireEnergyCoordinator
 from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 UNIT_CCF = "CCF"
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback) -> None:
-    coordinator: SpireEnergyCoordinator = hass.data[DOMAIN][entry.entry_id]
+async def async_setup_entry(hass: HomeAssistant, entry: SpireConfigEntry, async_add_entities: AddEntitiesCallback) -> None:
+    coordinator = entry.runtime_data
     async_add_entities([
         SpireGasMeterSensor(coordinator, entry),
         SpireGasUsageTodaySensor(coordinator, entry),
@@ -23,24 +24,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
         SpireNextBillDateSensor(coordinator, entry),
         SpireLastBillAmountSensor(coordinator, entry),
         SpireLastBillDateSensor(coordinator, entry),
-    ], update_before_add=True)
+    ])
 
 
-class SpireBaseSensor(SensorEntity):
-    _attr_should_poll = True
-
+class SpireBaseSensor(CoordinatorEntity[SpireEnergyCoordinator], SensorEntity):
     def __init__(self, coordinator: SpireEnergyCoordinator, entry: ConfigEntry) -> None:
-        self._coord = coordinator
+        super().__init__(coordinator)
         self._entry = entry
-        self._last_good: dict[str, Any] = {}
-
-    async def async_update(self) -> None:
-        if self._coord.data:
-            self._last_good = self._coord.data
 
     @property
     def _data(self) -> dict[str, Any]:
-        return self._coord.data or getattr(self, "_last_good", {})
+        return self.coordinator.data or {}
 
     @property
     def _billing(self) -> dict[str, Any]:

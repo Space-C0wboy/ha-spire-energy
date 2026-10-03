@@ -13,7 +13,8 @@ A [HACS](https://hacs.xyz/) custom integration for [Spire Energy](https://www.sp
 - **Cumulative meter read** — use `Gas Meter Reading` in the HA Energy Dashboard for long-term tracking
 - **Daily granularity** — if you have a smart meter (AMI), today's CCF usage is available
 - **Billing sensors** — current balance, next bill date, last bill amount and date
-- Automatically re-authenticates when sessions expire
+- **Energy dashboard statistics** — daily usage and real bill cost, backfilled from Spire's history
+- Automatically re-authenticates when sessions expire; asks for a new password if Spire rejects the saved one
 - **No extra dependencies** — uses only `aiohttp` (already bundled with Home Assistant)
 
 ---
@@ -22,7 +23,7 @@ A [HACS](https://hacs.xyz/) custom integration for [Spire Energy](https://www.sp
 
 | Sensor | Entity ID | Unit | Device Class | State Class | Description |
 |--------|-----------|------|--------------|-------------|-------------|
-| Spire Gas Meter Reading | `sensor.spire_gas_meter_reading` | CCF | `gas` | `total_increasing` | Cumulative meter read. Primary sensor for HA Energy dashboard. |
+| Spire Gas Meter Reading | `sensor.spire_gas_meter_reading` | CCF | `gas` | `total_increasing` | Latest cumulative meter read. |
 | Spire Gas Usage Today | `sensor.spire_gas_usage_today` | CCF | `gas` | `measurement` | Today's consumption (AMI smart meters only — may show `unknown` on standard meters) |
 | Spire Current Balance | `sensor.spire_current_balance` | USD | `monetary` | `total` | Current amount due on your account |
 | Spire Next Bill Date | `sensor.spire_next_bill_date` | — | — | — | Date your next bill is due |
@@ -59,10 +60,18 @@ A [HACS](https://hacs.xyz/) custom integration for [Spire Energy](https://www.sp
 
 ## Energy Dashboard Setup
 
+The integration imports two long-term statistics straight from Spire's history, backfilled as far as Spire keeps it:
+
+| Statistic | What it holds |
+|-----------|---------------|
+| `spire_energy:gas_consumption_<account>` | Daily gas use (CCF), from Spire's daily meter reads |
+| `spire_energy:gas_cost_<account>` | Real bill dollars, spread over each bill's days in proportion to that day's use |
+
 1. Go to **Settings → Dashboards → Energy**
-2. Under **Gas consumption**, click **Add gas source**
-3. Select **Spire Gas Meter Reading**
-4. HA will track cumulative CCF and calculate cost if you enter your rate
+2. Under **Gas consumption**, add a gas source and pick **Spire gas consumption**
+3. For cost, choose **Use an entity tracking the total costs** and pick **Spire gas cost**
+
+Spire posts daily reads in batches a few days late, and bills monthly. The statistics are rebuilt on every refresh, so late reads land on the days they happened and each new bill fills in its days' cost. Days not covered by a bill (before your first bill, or the current unbilled period) show usage without cost.
 
 > **Note:** 1 CCF = 100 cubic feet of natural gas ≈ 1.02 therms
 
