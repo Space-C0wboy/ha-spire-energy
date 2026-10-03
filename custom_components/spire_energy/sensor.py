@@ -78,7 +78,6 @@ class SpireGasMeterSensor(SpireBaseSensor):
 class SpireGasUsageTodaySensor(SpireBaseSensor):
     _attr_name = "Spire Gas Usage Today"
     _attr_device_class = SensorDeviceClass.GAS
-    _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = UNIT_CCF
     _attr_icon = "mdi:fire"
 
@@ -188,7 +187,6 @@ class SpireNextBillDateSensor(SpireBaseSensor):
 class SpireLastBillAmountSensor(SpireBaseSensor):
     _attr_name = "Spire Last Bill Amount"
     _attr_device_class = SensorDeviceClass.MONETARY
-    _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = "USD"
     _attr_icon = "mdi:receipt-text"
 

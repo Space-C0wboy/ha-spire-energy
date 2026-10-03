@@ -24,10 +24,10 @@ A [HACS](https://hacs.xyz/) custom integration for [Spire Energy](https://www.sp
 | Sensor | Entity ID | Unit | Device Class | State Class | Description |
 |--------|-----------|------|--------------|-------------|-------------|
 | Spire Gas Meter Reading | `sensor.spire_gas_meter_reading` | CCF | `gas` | `total_increasing` | Latest cumulative meter read. |
-| Spire Gas Usage Today | `sensor.spire_gas_usage_today` | CCF | `gas` | `measurement` | Today's consumption (AMI smart meters only — may show `unknown` on standard meters) |
+| Spire Gas Usage Today | `sensor.spire_gas_usage_today` | CCF | `gas` | — | Today's consumption (AMI smart meters only — may show `unknown` on standard meters) |
 | Spire Current Balance | `sensor.spire_current_balance` | USD | `monetary` | `total` | Current amount due on your account |
 | Spire Next Bill Date | `sensor.spire_next_bill_date` | — | — | — | Date your next bill is due |
-| Spire Last Bill Amount | `sensor.spire_last_bill_amount` | USD | `monetary` | `measurement` | Amount of your most recent bill |
+| Spire Last Bill Amount | `sensor.spire_last_bill_amount` | USD | `monetary` | — | Amount of your most recent bill |
 | Spire Last Bill Date | `sensor.spire_last_bill_date` | — | — | — | Date your most recent bill was issued |
 
 > **Note:** Entity IDs may vary if you have renamed entities. The names above are the defaults.
