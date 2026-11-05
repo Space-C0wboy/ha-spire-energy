@@ -100,7 +100,7 @@ class SpireGasUsageLatestDaySensor(SpireBaseSensor):
         u = self._data.get("latest_usage") or {}
         try:
             return round(float(u["units"]), 2)
-        except KeyError, TypeError, ValueError:
+        except (KeyError, TypeError, ValueError):
             return None
 
     @property
@@ -157,7 +157,7 @@ class SpireNextBillDateSensor(SpireBaseSensor):
                 if parsed < date.today():
                     return None
                 return parsed
-            except ValueError, TypeError:
+            except (ValueError, TypeError):
                 _LOGGER.debug("Spire: could not parse next_bill_date: %s", raw)
         return None
 
@@ -187,7 +187,7 @@ class SpireLastBillAmountSensor(SpireBaseSensor):
         if val is not None:
             try:
                 return round(float(val), 2)
-            except ValueError, TypeError:
+            except (ValueError, TypeError):
                 pass
         return None
 
@@ -222,6 +222,6 @@ class SpireLastBillDateSensor(SpireBaseSensor):
             try:
                 # Format: "2026-02-27"
                 return datetime.strptime(raw, "%Y-%m-%d").date()
-            except ValueError, TypeError:
+            except (ValueError, TypeError):
                 _LOGGER.debug("Spire: could not parse last_bill_date: %s", raw)
         return None

@@ -38,7 +38,7 @@ class Bill:
 def _details(data: dict[str, Any]) -> list[dict[str, Any]]:
     try:
         return [d for y in data["premises"][0]["yearlyUsages"] for d in y["usageDetails"]]
-    except KeyError, IndexError, TypeError:
+    except (KeyError, IndexError, TypeError):
         return []
 
 
@@ -49,7 +49,7 @@ def parse_daily_reads(data: dict[str, Any]) -> list[DailyRead]:
         try:
             day = date.fromisoformat(d["measuredOn"])
             reads[day] = DailyRead(day, float(d["meterRead"]), float(d["units"]))
-        except KeyError, TypeError, ValueError:
+        except (KeyError, TypeError, ValueError):
             continue
     return [reads[day] for day in sorted(reads)]
 
@@ -61,7 +61,7 @@ def parse_bills(data: dict[str, Any]) -> list[Bill]:
         try:
             start, end = date.fromisoformat(d["startDate"]), date.fromisoformat(d["endDate"])
             bills[(start, end)] = Bill(start, end, float(d["dollars"]))
-        except KeyError, TypeError, ValueError:
+        except (KeyError, TypeError, ValueError):
             continue
     return [bills[key] for key in sorted(bills, key=lambda k: k[1])]
 

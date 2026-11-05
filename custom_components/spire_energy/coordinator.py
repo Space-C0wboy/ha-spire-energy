@@ -112,7 +112,7 @@ class SpireEnergyCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 details = yearly.get("usageDetails", [])
                 if details:
                     return details[0]
-        except KeyError, IndexError, TypeError:
+        except (KeyError, IndexError, TypeError):
             pass
         return None
 
@@ -134,6 +134,6 @@ class SpireEnergyCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # Sort by date descending and return the most recent
             all_details.sort(key=lambda d: d.get("measuredOn", ""), reverse=True)
             return all_details[0]
-        except KeyError, IndexError, TypeError:
+        except (KeyError, IndexError, TypeError):
             pass
         return None
