@@ -1,4 +1,5 @@
 """Tests for parsing Spire history and building external statistics."""
+
 from datetime import date, datetime
 from unittest.mock import patch
 from zoneinfo import ZoneInfo
@@ -47,9 +48,21 @@ def test_parse_skips_incomplete_and_odd_payloads():
         assert parse({}) == []
         assert parse({"premises": []}) == []
         assert parse({"premises": [{"yearlyUsages": None}]}) == []
-    broken = {"premises": [{"yearlyUsages": [{"usageDetails": [
-        daily("2026-01-01", None, "1"), daily("bad", "1", "1"), {"measuredOn": "2026-01-03"},
-    ]}]}]}
+    broken = {
+        "premises": [
+            {
+                "yearlyUsages": [
+                    {
+                        "usageDetails": [
+                            daily("2026-01-01", None, "1"),
+                            daily("bad", "1", "1"),
+                            {"measuredOn": "2026-01-03"},
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
     assert parse_daily_reads(broken) == []
     assert parse_bills(DAILY) == []  # daily rows carry no dollars/period
 
@@ -60,7 +73,11 @@ def test_consumption_uses_read_differences_so_gaps_keep_their_usage():
         (midnight(date(2025, 12, 31)), 95.5, 0.0),  # baseline: first read minus its own usage
         (midnight(date(2026, 1, 1)), 97.0, 1.5),
         (midnight(date(2026, 1, 2)), 100.0, 4.5),
-        (midnight(date(2026, 1, 5)), 108.0, 12.5),  # 8 CCF: covers the Jan 3-4 gap, not just units=1
+        (
+            midnight(date(2026, 1, 5)),
+            108.0,
+            12.5,
+        ),  # 8 CCF: covers the Jan 3-4 gap, not just units=1
         (midnight(date(2026, 1, 6)), 110.0, 14.5),
     ]
 
@@ -91,13 +108,27 @@ def test_cost_split_evenly_when_period_used_nothing():
 def test_bill_with_no_daily_reads_lands_on_its_end_date():
     reads = [DailyRead(date(2026, 1, 1), 10.0, 1.0), DailyRead(date(2026, 1, 9), 12.0, 1.0)]
     _, cost = build_statistics(reads, [Bill(date(2026, 1, 3), date(2026, 1, 5), 20.0)], TZ)
-    assert rows(cost, "start", "sum")[-2:] == [(midnight(date(2026, 1, 5)), 20.0), (midnight(date(2026, 1, 9)), 20.0)]
+    assert rows(cost, "start", "sum")[-2:] == [
+        (midnight(date(2026, 1, 5)), 20.0),
+        (midnight(date(2026, 1, 9)), 20.0),
+    ]
 
 
 def test_rebilled_period_keeps_the_last_bill():
-    rebilled = {"premises": [{"yearlyUsages": [{"usageDetails": [
-        bill("2026-01-02", "2026-01-06", "33.00", "10"), bill("2026-01-02", "2026-01-06", "40.00", "10"),
-    ]}]}]}
+    rebilled = {
+        "premises": [
+            {
+                "yearlyUsages": [
+                    {
+                        "usageDetails": [
+                            bill("2026-01-02", "2026-01-06", "33.00", "10"),
+                            bill("2026-01-02", "2026-01-06", "40.00", "10"),
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
     assert parse_bills(rebilled) == [Bill(date(2026, 1, 2), date(2026, 1, 6), 40.0)]
 
 
@@ -116,7 +147,10 @@ async def test_import_calls_recorder(hass):
     with patch("custom_components.spire_energy.statistics.async_add_external_statistics") as add:
         async_import_statistics(hass, "123", parse_daily_reads(DAILY), parse_bills(MONTHLY))
     meta = [c.args[1] for c in add.call_args_list]
-    assert [m["statistic_id"] for m in meta] == ["spire_energy:gas_consumption_123", "spire_energy:gas_cost_123"]
+    assert [m["statistic_id"] for m in meta] == [
+        "spire_energy:gas_consumption_123",
+        "spire_energy:gas_cost_123",
+    ]
     assert meta[0]["unit_of_measurement"] == "CCF"
     assert len(add.call_args_list[0].args[2]) == 5
 

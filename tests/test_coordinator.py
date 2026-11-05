@@ -1,4 +1,5 @@
 """Tests for the coordinator: auth handling and statistics import."""
+
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -44,7 +45,9 @@ async def test_imports_statistics_once_per_change(hass):
 
 
 async def test_bill_history_failure_skips_import(hass):
-    coordinator = make_coordinator(hass, make_api(get_monthly_usage=AsyncMock(side_effect=SpireEnergyConnectionError())))
+    coordinator = make_coordinator(
+        hass, make_api(get_monthly_usage=AsyncMock(side_effect=SpireEnergyConnectionError()))
+    )
     with patch(IMPORT) as imp:
         data = await coordinator._async_update_data()
     assert imp.call_count == 0  # importing without bills would wipe the cost series
@@ -52,12 +55,16 @@ async def test_bill_history_failure_skips_import(hass):
 
 
 async def test_rejected_credentials_start_reauth(hass):
-    coordinator = make_coordinator(hass, make_api(ensure_authenticated=AsyncMock(return_value=False)))
+    coordinator = make_coordinator(
+        hass, make_api(ensure_authenticated=AsyncMock(return_value=False))
+    )
     with pytest.raises(ConfigEntryAuthFailed):
         await coordinator._async_update_data()
 
 
 async def test_connection_error_is_update_failed(hass):
-    coordinator = make_coordinator(hass, make_api(get_daily_usage=AsyncMock(side_effect=SpireEnergyConnectionError())))
+    coordinator = make_coordinator(
+        hass, make_api(get_daily_usage=AsyncMock(side_effect=SpireEnergyConnectionError()))
+    )
     with pytest.raises(UpdateFailed):
         await coordinator._async_update_data()

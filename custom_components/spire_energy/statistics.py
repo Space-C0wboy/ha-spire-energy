@@ -1,9 +1,10 @@
 """External statistics for the Energy dashboard: daily gas use from meter reads, cost from bills."""
+
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from datetime import date, datetime, time, timedelta, tzinfo
-import re
 from typing import Any
 
 from homeassistant.components.recorder.models import (
@@ -68,7 +69,7 @@ def parse_bills(data: dict[str, Any]) -> list[Bill]:
 def _daily_usage(reads: list[DailyRead]) -> dict[date, float]:
     # Read differences, not `units`: the day after a gap in the data then carries the gap's usage.
     usage = {reads[0].day: reads[0].units}
-    for prev, cur in zip(reads, reads[1:]):
+    for prev, cur in zip(reads, reads[1:], strict=False):
         diff = cur.read - prev.read
         usage[cur.day] = diff if diff >= 0 else cur.units  # meter swap
     return usage
@@ -104,7 +105,9 @@ def build_statistics(
         return datetime.combine(day, time.min, tzinfo=tz)
 
     baseline = reads[0].day - timedelta(days=1)
-    consumption = [StatisticData(start=start(baseline), state=reads[0].read - reads[0].units, sum=0.0)]
+    consumption = [
+        StatisticData(start=start(baseline), state=reads[0].read - reads[0].units, sum=0.0)
+    ]
     money = [StatisticData(start=start(baseline), state=0.0, sum=0.0)]
     volume_total = 0.0
     for day in sorted(usage):

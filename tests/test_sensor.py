@@ -1,4 +1,5 @@
 """Tests for sensor values."""
+
 from unittest.mock import MagicMock
 
 from custom_components.spire_energy.sensor import SpireGasUsageLatestDaySensor

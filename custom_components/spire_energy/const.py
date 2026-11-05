@@ -12,8 +12,12 @@ API_BASE = f"{BASE_URL}/o/rest"
 # Endpoints
 EP_ACCOUNTS = f"{API_BASE}/accounts/api/v1/accounts"
 EP_ACCOUNT = f"{API_BASE}/accounts/api/v1/account/{{account_id}}"
-EP_DAILY_USAGE = f"{API_BASE}/accounts/api/v1/usage-graphical-history/{{account_id}}/daily-usage-history"
-EP_MONTHLY_USAGE = f"{API_BASE}/accounts/api/v1/usage-graphical-history/{{account_id}}/usage-history"
+EP_DAILY_USAGE = (
+    f"{API_BASE}/accounts/api/v1/usage-graphical-history/{{account_id}}/daily-usage-history"
+)
+EP_MONTHLY_USAGE = (
+    f"{API_BASE}/accounts/api/v1/usage-graphical-history/{{account_id}}/usage-history"
+)
 EP_BALANCE = f"{API_BASE}/accounts/api/v1/account/{{account_id}}/due-balance-alert"
 EP_MFA_VALIDATE = f"{API_BASE}/mfa/v1.0/validate"
 

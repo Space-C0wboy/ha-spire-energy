@@ -1,30 +1,38 @@
 """Spire Energy sensor platform."""
+
 from __future__ import annotations
+
 import logging
-from datetime import datetime, date
+from datetime import date, datetime
 from typing import Any
+
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from .coordinator import SpireConfigEntry, SpireEnergyCoordinator
+
 from .const import DOMAIN
+from .coordinator import SpireConfigEntry, SpireEnergyCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 UNIT_CCF = "CCF"
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: SpireConfigEntry, async_add_entities: AddEntitiesCallback) -> None:
+async def async_setup_entry(
+    hass: HomeAssistant, entry: SpireConfigEntry, async_add_entities: AddEntitiesCallback
+) -> None:
     coordinator = entry.runtime_data
-    async_add_entities([
-        SpireGasMeterSensor(coordinator, entry),
-        SpireGasUsageLatestDaySensor(coordinator, entry),
-        SpireCurrentBalanceSensor(coordinator, entry),
-        SpireNextBillDateSensor(coordinator, entry),
-        SpireLastBillAmountSensor(coordinator, entry),
-        SpireLastBillDateSensor(coordinator, entry),
-    ])
+    async_add_entities(
+        [
+            SpireGasMeterSensor(coordinator, entry),
+            SpireGasUsageLatestDaySensor(coordinator, entry),
+            SpireCurrentBalanceSensor(coordinator, entry),
+            SpireNextBillDateSensor(coordinator, entry),
+            SpireLastBillAmountSensor(coordinator, entry),
+            SpireLastBillDateSensor(coordinator, entry),
+        ]
+    )
 
 
 class SpireBaseSensor(CoordinatorEntity[SpireEnergyCoordinator], SensorEntity):

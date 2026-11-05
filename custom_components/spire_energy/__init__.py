@@ -1,4 +1,5 @@
 """Spire Energy Home Assistant integration."""
+
 from __future__ import annotations
 
 import logging
