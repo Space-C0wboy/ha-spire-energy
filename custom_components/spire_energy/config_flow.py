@@ -1,4 +1,5 @@
 """Config flow for Spire Energy integration."""
+
 from __future__ import annotations
 
 import logging
@@ -6,7 +7,6 @@ from collections.abc import Mapping
 from typing import Any
 
 import voluptuous as vol
-
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.core import HomeAssistant
@@ -31,9 +31,7 @@ STEP_USER_SCHEMA = vol.Schema(
 PASSWORD_SCHEMA = vol.Schema({vol.Required(CONF_PASSWORD): str})
 
 
-async def validate_credentials(
-    hass: HomeAssistant, email: str, password: str
-) -> dict[str, str]:
+async def validate_credentials(hass: HomeAssistant, email: str, password: str) -> dict[str, str]:
     """Validate credentials and discover account IDs."""
     api = SpireEnergyAPI()
 
@@ -64,9 +62,7 @@ class SpireEnergyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
 
-    async def async_step_user(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         errors: dict[str, str] = {}
 
         if user_input is not None:

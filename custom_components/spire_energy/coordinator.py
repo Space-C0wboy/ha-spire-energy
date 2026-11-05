@@ -1,12 +1,16 @@
 """DataUpdateCoordinator for Spire Energy."""
+
 from __future__ import annotations
+
 import logging
 from datetime import timedelta
 from typing import Any
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+
 from .api import SpireEnergyAPI, SpireEnergyAuthError, SpireEnergyConnectionError
 from .const import CONF_SA_ID, CONF_UTILITY_ACCOUNT_ID, DOMAIN, UPDATE_INTERVAL_HOURS
 from .statistics import async_import_statistics, parse_bills, parse_daily_reads
@@ -108,7 +112,7 @@ class SpireEnergyCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 details = yearly.get("usageDetails", [])
                 if details:
                     return details[0]
-        except (KeyError, IndexError, TypeError):
+        except KeyError, IndexError, TypeError:
             pass
         return None
 
@@ -130,6 +134,6 @@ class SpireEnergyCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # Sort by date descending and return the most recent
             all_details.sort(key=lambda d: d.get("measuredOn", ""), reverse=True)
             return all_details[0]
-        except (KeyError, IndexError, TypeError):
+        except KeyError, IndexError, TypeError:
             pass
         return None

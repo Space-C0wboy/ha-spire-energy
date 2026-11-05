@@ -1,4 +1,5 @@
 """Spire Energy API client."""
+
 from __future__ import annotations
 
 import logging
@@ -8,12 +9,12 @@ import aiohttp
 
 from .const import (
     BASE_URL,
-    EP_ACCOUNTS,
     EP_ACCOUNT,
-    EP_DAILY_USAGE,
-    EP_MONTHLY_USAGE,
+    EP_ACCOUNTS,
     EP_BALANCE,
+    EP_DAILY_USAGE,
     EP_MFA_VALIDATE,
+    EP_MONTHLY_USAGE,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -128,16 +129,12 @@ class SpireEnergyAPI:
             return addresses[0].get("saId")
         return None
 
-    async def get_daily_usage(
-        self, utility_account_id: str, sa_id: str
-    ) -> dict[str, Any]:
+    async def get_daily_usage(self, utility_account_id: str, sa_id: str) -> dict[str, Any]:
         """Return daily usage history with cumulative meter reads."""
         url = EP_DAILY_USAGE.format(account_id=utility_account_id)
         return await self._get(url, params={"saId": sa_id})
 
-    async def get_monthly_usage(
-        self, utility_account_id: str
-    ) -> dict[str, Any]:
+    async def get_monthly_usage(self, utility_account_id: str) -> dict[str, Any]:
         """Return monthly/billing-period usage history."""
         url = EP_MONTHLY_USAGE.format(account_id=utility_account_id)
         return await self._get(url, params={"onOverviewPage": "true"})
